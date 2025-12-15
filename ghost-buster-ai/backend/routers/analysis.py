@@ -72,8 +72,8 @@ async def analyze(request: AnalyzeRequest):
 
     return AnalysisResult(
         score=analysis["score"],
-        threshold=0.5,
-        matched=analysis["score"] >= 0.5,
+        threshold=0.8,
+        matched=analysis["score"] >= 0.8,
         detectedLanguage=analysis["detected_language"],
         candidate=CandidateInfo(
             name=candidate_name or "Candidate",
