@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Ghost, Sparkles, Loader2, MessageCircle, ArrowRight } from 'lucide-react';
 import { ProfileSelector } from './components/ProfileSelector';
 import { JobSelector } from './components/JobSelector';
@@ -12,6 +12,22 @@ import type { Job, Profile, AnalysisResult } from './lib/types';
 
 type Step = 'select' | 'analyzing' | 'results';
 
+function getUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    profileKey: params.get('profile'),
+    jobKey: params.get('job'),
+  };
+}
+
+function updateUrl(profileKey: string | null, jobKey: string | null) {
+  const params = new URLSearchParams();
+  if (profileKey) params.set('profile', profileKey);
+  if (jobKey) params.set('job', jobKey);
+  const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+  window.history.replaceState({}, '', newUrl);
+}
+
 function App() {
   const [step, setStep] = useState<Step>('select');
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -24,9 +40,29 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const [showChat, setShowChat] = useState(false);
 
+  // Update URL when selection changes
+  const handleProfileSelect = useCallback((profile: Profile) => {
+    setSelectedProfile(profile);
+    updateUrl(profile.key, selectedJob?.key || null);
+  }, [selectedJob]);
+
+  const handleJobSelect = useCallback((job: Job) => {
+    setSelectedJob(job);
+    updateUrl(selectedProfile?.key || null, job.key);
+  }, [selectedProfile]);
+
   useEffect(() => {
+    const { profileKey, jobKey } = getUrlParams();
+
     fetchJobs()
-      .then(setJobs)
+      .then((fetchedJobs) => {
+        setJobs(fetchedJobs);
+        // Restore job selection from URL
+        if (jobKey) {
+          const job = fetchedJobs.find(j => j.key === jobKey);
+          if (job) setSelectedJob(job);
+        }
+      })
       .catch((err) => {
         console.error('Failed to fetch jobs:', err);
         setError('Failed to load jobs');
@@ -34,7 +70,14 @@ function App() {
       .finally(() => setJobsLoading(false));
 
     fetchProfiles()
-      .then(setProfiles)
+      .then((fetchedProfiles) => {
+        setProfiles(fetchedProfiles);
+        // Restore profile selection from URL
+        if (profileKey) {
+          const profile = fetchedProfiles.find(p => p.key === profileKey);
+          if (profile) setSelectedProfile(profile);
+        }
+      })
       .catch((err) => {
         console.error('Failed to fetch profiles:', err);
         setError('Failed to load profiles');
@@ -52,6 +95,7 @@ function App() {
       const analysisResult = await analyzeCandidate(selectedProfile.key, selectedJob.key);
       setResult(analysisResult);
       setStep('results');
+      setShowChat(true);
     } catch (err) {
       console.error('Analysis failed:', err);
       setError('Failed to analyze. Please try again.');
@@ -66,6 +110,7 @@ function App() {
     setResult(null);
     setError(null);
     setShowChat(false);
+    updateUrl(null, null);
   };
 
   const canAnalyze = selectedProfile && selectedJob;
@@ -126,7 +171,7 @@ function App() {
                 <ProfileSelector
                   profiles={profiles}
                   selectedProfile={selectedProfile}
-                  onSelect={setSelectedProfile}
+                  onSelect={handleProfileSelect}
                   loading={profilesLoading}
                 />
               </div>
@@ -139,7 +184,7 @@ function App() {
                 <JobSelector
                   jobs={jobs}
                   selectedJob={selectedJob}
-                  onSelect={setSelectedJob}
+                  onSelect={handleJobSelect}
                   loading={jobsLoading}
                 />
               </div>
@@ -180,7 +225,7 @@ function App() {
 
         {/* Results Step */}
         {step === 'results' && result && (
-          <div className="space-y-8">
+          <div className={`space-y-6 transition-all ${showChat ? 'mr-[420px]' : ''}`}>
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -191,17 +236,25 @@ function App() {
                     Applied for: {result.chatContext.jobTitle}
                   </p>
                 </div>
-                <button
-                  onClick={() => setShowChat(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  Open Feedback Chat
-                </button>
+                {!showChat && (
+                  <button
+                    onClick={() => setShowChat(true)}
+                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    Open Feedback Chat
+                  </button>
+                )}
               </div>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-8">
+            <EmailPreview
+              email={result.email}
+              candidateName={result.candidate.name}
+              language={result.detectedLanguage}
+            />
+
+            <div className="grid lg:grid-cols-2 gap-6">
               <ScoreDisplay
                 score={result.score}
                 threshold={result.threshold}
@@ -216,12 +269,6 @@ function App() {
             </div>
 
             <Recommendations recommendations={result.recommendations} />
-
-            <EmailPreview
-              email={result.email}
-              candidateName={result.candidate.name}
-              language={result.detectedLanguage}
-            />
           </div>
         )}
       </main>
