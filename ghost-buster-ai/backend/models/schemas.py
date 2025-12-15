@@ -9,6 +9,20 @@ class SkillItem(BaseModel):
     requiredLevel: int
 
 
+class CourseItem(BaseModel):
+    name: str
+    platform: str
+    url: str
+
+
+class Recommendation(BaseModel):
+    type: str  # "hardskill" or "softskill"
+    skill: Optional[str] = None
+    title: str
+    description: str
+    courses: list[CourseItem] = []
+
+
 class CandidateInfo(BaseModel):
     name: str
     email: Optional[str] = None
@@ -19,7 +33,7 @@ class ChatContext(BaseModel):
     jobTitle: str
     skillGaps: list[SkillItem]
     strengths: list[SkillItem]
-    recommendations: list[str]
+    recommendations: list[Recommendation]
 
 
 class AnalysisResult(BaseModel):
@@ -30,7 +44,7 @@ class AnalysisResult(BaseModel):
     candidate: CandidateInfo
     skillGaps: list[SkillItem]
     strengths: list[SkillItem]
-    recommendations: list[str]
+    recommendations: list[Recommendation]
     email: str
     videoUrl: Optional[str] = None
     chatContext: ChatContext

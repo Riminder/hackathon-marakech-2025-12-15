@@ -6,6 +6,20 @@ export interface SkillItem {
   requiredLevel: number;
 }
 
+export interface CourseItem {
+  name: string;
+  platform: string;
+  url: string;
+}
+
+export interface Recommendation {
+  type: 'hardskill' | 'softskill' | 'general';
+  skill?: string;
+  title: string;
+  description: string;
+  courses: CourseItem[];
+}
+
 export interface CandidateInfo {
   name: string;
   email?: string;
@@ -16,7 +30,7 @@ export interface ChatContext {
   jobTitle: string;
   skillGaps: SkillItem[];
   strengths: SkillItem[];
-  recommendations: string[];
+  recommendations: Recommendation[];
 }
 
 export interface AnalysisResult {
@@ -27,7 +41,7 @@ export interface AnalysisResult {
   candidate: CandidateInfo;
   skillGaps: SkillItem[];
   strengths: SkillItem[];
-  recommendations: string[];
+  recommendations: Recommendation[];
   email: string;
   videoUrl?: string;
   chatContext: ChatContext;
