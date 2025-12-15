@@ -162,22 +162,6 @@ export default function JobDetails({ job }: { job: Job }) {
 
           <TabsContent value='details' className='space-y-6 pt-6'>
 
-            {/* Salary */}
-            <div>
-              <h3 className='mb-2 text-sm font-medium text-muted-foreground'>
-                Salary
-              </h3>
-              <p className='text-lg font-semibold'>${job.salary.toLocaleString()}</p>
-            </div>
-
-            {/* Description */}
-            <div>
-              <h3 className='mb-2 text-sm font-medium text-muted-foreground'>
-                Description
-              </h3>
-              <p className='text-base leading-relaxed'>{job.description}</p>
-            </div>
-
             {/* Metadata */}
             <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
               <div>
@@ -195,7 +179,7 @@ export default function JobDetails({ job }: { job: Job }) {
 
               <div>
                 <h3 className='mb-2 text-sm font-medium text-muted-foreground'>
-                  Last Updated
+                  Updated At
                 </h3>
                 <p className='text-sm'>
                   {new Date(job.updated_at).toLocaleDateString('en-US', {
@@ -205,6 +189,30 @@ export default function JobDetails({ job }: { job: Job }) {
                   })}
                 </p>
               </div>
+            </div>
+
+            {/* Requirements */}
+            <div>
+              <h3 className='mb-2 text-sm font-medium text-muted-foreground'>
+                Requirements
+              </h3>
+              <p className='text-base leading-relaxed'>{job.requirements}</p>
+            </div>
+
+            {/* Responsibilities */}
+            <div>
+              <h3 className='mb-2 text-sm font-medium text-muted-foreground'>
+                Responsibilities
+              </h3>
+              <p className='text-base leading-relaxed'>{job.responsibilities}</p>
+            </div>
+
+            {/* Skills */}
+            <div>
+              <h3 className='mb-2 text-sm font-medium text-muted-foreground'>
+                Skills
+              </h3>
+              <p className='text-base leading-relaxed'>{job.skills}</p>
             </div>
           </TabsContent>
 
