@@ -160,9 +160,10 @@ fakeProducts.initialize();
 export type Job = {
   photo_url: string;
   title: string;
-  description: string;
+  requirements: string;
+  responsibilities: string;
+  skills: string;
   created_at: string;
-  salary: number;
   id: number;
   category: string;
   updated_at: string;
@@ -188,11 +189,12 @@ export const fakeJobs = {
       return {
         id,
         title: faker.person.jobTitle(),
-        description: faker.lorem.paragraph(),
+        requirements: faker.lorem.paragraph(),
+        responsibilities: faker.lorem.paragraph(),
+        skills: faker.lorem.words(10),
         created_at: faker.date
           .between({ from: '2022-01-01', to: '2023-12-31' })
           .toISOString(),
-        salary: parseFloat(faker.commerce.price({ min: 30000, max: 150000, dec: 2 })),
         photo_url: `https://api.slingacademy.com/public/sample-products/${id}.png`,
         category: faker.helpers.arrayElement(categories),
         updated_at: faker.date.recent().toISOString()
@@ -227,7 +229,7 @@ export const fakeJobs = {
     // Search functionality across multiple fields
     if (search) {
       jobs = matchSorter(jobs, search, {
-        keys: ['title', 'description', 'category']
+        keys: ['title', 'requirements', 'responsibilities', 'skills', 'category']
       });
     }
 

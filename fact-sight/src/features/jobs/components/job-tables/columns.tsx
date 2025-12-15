@@ -38,9 +38,7 @@ export const columns: ColumnDef<Job>[] = [
       const aiQualified = Math.floor((row.original.id * 7) % 20) + 5;
       return (
         <div className='flex justify-center'>
-          <div className='flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-green-400 to-emerald-500 text-white font-bold shadow-md'>
-            {aiQualified}
-          </div>
+          <Badge variant='outline'>{aiQualified}</Badge>
         </div>
       );
     }
@@ -53,9 +51,7 @@ export const columns: ColumnDef<Job>[] = [
       const allCandidates = Math.floor((row.original.id * 13) % 100) + 50;
       return (
         <div className='flex justify-center'>
-          <div className='flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 text-white font-bold shadow-md'>
-            {allCandidates}
-          </div>
+          <Badge variant='outline'>{allCandidates}</Badge>
         </div>
       );
     }
