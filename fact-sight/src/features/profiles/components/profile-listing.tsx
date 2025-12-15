@@ -2,7 +2,6 @@ import { Profile } from '@/constants/data';
 import { fakeProfiles } from '@/constants/mock-api';
 import { searchParamsCache } from '@/lib/searchparams';
 import { ProfileTable } from './profile-tables';
-import { columns } from './profile-tables/columns';
 
 type ProfileListingPage = {};
 
@@ -24,11 +23,5 @@ export default async function ProfileListingPage({}: ProfileListingPage) {
   const totalProfiles = data.total_profiles;
   const profiles: Profile[] = data.profiles;
 
-  return (
-    <ProfileTable
-      data={profiles}
-      totalItems={totalProfiles}
-      columns={columns}
-    />
-  );
+  return <ProfileTable data={profiles} totalItems={totalProfiles} />;
 }

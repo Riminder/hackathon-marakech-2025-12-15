@@ -12,15 +12,43 @@ import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-h
 import { Column, ColumnDef } from '@tanstack/react-table';
 import { IconEye } from '@tabler/icons-react';
 import Image from 'next/image';
+import CandidateDetailsContent from './candidate-details-content';
 
 export type Candidate = {
   name: string;
   email: string;
   role: string;
   imageUrl: string;
+  href?: string;
   lastSeen: string | null;
   lastSeenDateTime?: string;
   score: number;
+  phone?: string;
+  location?: string;
+  linkedin?: string;
+  github?: string;
+  website?: string;
+  created_at?: string;
+  updated_at?: string;
+  category?: string;
+  experiences?: Array<{
+    title: string;
+    company: string;
+    date_start: string;
+    date_end: string | null;
+    description: string;
+  }>;
+  educations?: Array<{
+    title: string;
+    school: string;
+    date_start: string;
+    date_end: string | null;
+    description: string;
+  }>;
+  skills?: Array<{
+    name: string;
+    type: 'hard' | 'soft';
+  }>;
 };
 
 const getScoreColor = (score: number) => {
@@ -144,36 +172,11 @@ export const columns: ColumnDef<Candidate>[] = [
               Details
             </Badge>
           </DialogTrigger>
-          <DialogContent className='max-w-md'>
-            <div className='flex flex-col items-center space-y-6 py-4'>
-              <div className='relative h-24 w-24'>
-                <Image
-                  src={row.original.imageUrl}
-                  alt={row.original.name}
-                  fill
-                  className='rounded-full object-cover'
-                />
-              </div>
-              <div className='text-center'>
-                <h3 className='text-2xl font-bold'>{row.original.name}</h3>
-                <p className='text-sm text-muted-foreground'>{row.original.role}</p>
-              </div>
-
-              <div className='flex w-full items-center justify-around gap-4'>
-                <div className='flex flex-col items-center gap-2'>
-                  {renderCircularScore(row.original.score)}
-                  <span className='text-xs font-medium'>Hard Skills</span>
-                </div>
-                <div className='flex flex-col items-center gap-2'>
-                  {renderCircularScore(Math.floor(row.original.score * 0.2))}
-                  <span className='text-xs font-medium'>Soft Skills</span>
-                </div>
-                <div className='flex flex-col items-center gap-2'>
-                  {renderCircularScore(Math.floor(row.original.score * 0.1))}
-                  <span className='text-xs font-medium'>Reference</span>
-                </div>
-              </div>
-            </div>
+          <DialogContent className='max-w-7xl max-h-[90vh] overflow-y-auto'>
+            <DialogHeader>
+              <DialogTitle className='text-2xl font-bold'>Personal Information</DialogTitle>
+            </DialogHeader>
+            <CandidateDetailsContent candidate={row.original} />
           </DialogContent>
         </Dialog>
       );
