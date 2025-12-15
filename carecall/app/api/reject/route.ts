@@ -7,15 +7,19 @@ export async function POST(request: Request) {
   
   try {
     const body = await request.json();
-    console.log("📦 2. Payload reçu du Frontend:", JSON.stringify(body, null, 2));
 
-    const HRFLOW_URL = "https://api-workflows.hrflow.ai/teams/fc9d40fd60e679119130ea74ae1d34a3e22174f2/dev-demo/python3.9/dd3a9abe34b0a3dc2c86b296a950d9ccb468c34d";
-    const API_KEY = "ask_09d9cda949adbb6f475da0ab5f832491"; // TA CLÉ ICI
-    const USER_EMAIL = "integrations+carecall@hrflow.ai";
+    // ✅ RÉCUPÉRATION SÉCURISÉE
+    const API_KEY = process.env.HRFLOW_API_KEY;
+    const USER_EMAIL = process.env.HRFLOW_USER_EMAIL;
 
-    console.log("🚀 3. Envoi vers HrFlow...");
+    // L'URL du Workflow est souvent unique et peut rester en dur ou aller dans le .env aussi
+    const WORKFLOW_URL = "https://api-workflows.hrflow.ai/teams/fc9d40fd60e679119130ea74ae1d34a3e22174f2/dev-demo/python3.9/dd3a9abe34b0a3dc2c86b296a950d9ccb468c34d";
 
-    const response = await fetch(HRFLOW_URL, {
+    if (!API_KEY || !USER_EMAIL) {
+        return NextResponse.json({ error: "Configuration serveur manquante" }, { status: 500 });
+    }
+
+    const response = await fetch(WORKFLOW_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -24,6 +28,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify(body),
     });
+
 
     console.log("📡 4. Réponse HrFlow - Status:", response.status);
 
