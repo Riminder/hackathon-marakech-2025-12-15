@@ -1,0 +1,17 @@
+{
+  "name": "whatsapp-hr-agent",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "form-data": "^4.0.5",
+    "openai": "^4.0.0",
+    "twilio": "^5.0.0"
+  }
+}
