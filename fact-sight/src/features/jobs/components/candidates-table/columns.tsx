@@ -26,7 +26,6 @@ export type Candidate = {
   phone?: string;
   location?: string;
   linkedin?: string;
-  github?: string;
   website?: string;
   created_at?: string;
   updated_at?: string;
@@ -92,7 +91,26 @@ const renderCircularScore = (score: number) => {
   );
 };
 
+const getRankColor = (rank: number) => {
+  if (rank === 1) return 'bg-yellow-500';
+  if (rank === 2) return 'bg-gray-400';
+  if (rank === 3) return 'bg-amber-700';
+  return 'bg-blue-500';
+};
+
 export const columns: ColumnDef<Candidate>[] = [
+  {
+    id: 'rank',
+    header: 'RANK',
+    cell: ({ row }) => {
+      const rank = row.index + 1;
+      return (
+        <div className={`flex h-10 w-10 items-center justify-center rounded-full ${getRankColor(rank)} text-white font-bold text-sm`}>
+          #{rank}
+        </div>
+      );
+    }
+  },
   {
     accessorKey: 'imageUrl',
     header: 'IMAGE',

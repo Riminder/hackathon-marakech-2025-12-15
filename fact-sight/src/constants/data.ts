@@ -33,7 +33,6 @@ export type Profile = {
   phone?: string;
   location?: string;
   linkedin?: string;
-  github?: string;
   website?: string;
   experiences?: Array<{
     title: string;

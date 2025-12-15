@@ -13,7 +13,6 @@ import {
   Tag,
   Phone,
   Globe,
-  Github,
   Linkedin,
   Building2,
   CheckCircle2,
@@ -130,15 +129,6 @@ export default function CandidateDetailsContent({ candidate }: { candidate: Cand
                   title='LinkedIn'
                 >
                   <Linkedin className='w-4.5 h-4.5' />
-                </Link>
-              )}
-              {candidate.github && (
-                <Link
-                  href={candidate.github}
-                  className='text-gray-600 hover:text-gray-900 transition-colors'
-                  title='GitHub'
-                >
-                  <Github className='w-4.5 h-4.5' />
                 </Link>
               )}
             </div>
