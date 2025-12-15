@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Ghost, Sparkles, Loader2, MessageCircle, ArrowRight } from 'lucide-react';
+import { Ghost, Sparkles, Loader2, MessageCircle, ArrowRight, Flame } from 'lucide-react';
 import { ProfileSelector } from './components/ProfileSelector';
 import { JobSelector } from './components/JobSelector';
 import { ScoreDisplay } from './components/ScoreDisplay';
@@ -7,6 +7,7 @@ import { SkillGapChart } from './components/SkillGapChart';
 import { EmailPreview } from './components/EmailPreview';
 import { Recommendations } from './components/Recommendations';
 import { Chat } from './components/Chat';
+import { VideoPlayer } from './components/VideoPlayer';
 import { fetchJobs, fetchProfiles, analyzeCandidate } from './lib/api';
 import type { Job, Profile, AnalysisResult } from './lib/types';
 
@@ -39,6 +40,7 @@ function App() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showChat, setShowChat] = useState(false);
+  const [roastMode, setRoastMode] = useState(false);
 
   // Update URL when selection changes
   const handleProfileSelect = useCallback((profile: Profile) => {
@@ -92,7 +94,7 @@ function App() {
     setError(null);
 
     try {
-      const analysisResult = await analyzeCandidate(selectedProfile.key, selectedJob.key);
+      const analysisResult = await analyzeCandidate(selectedProfile.key, selectedJob.key, roastMode);
       setResult(analysisResult);
       setStep('results');
       setShowChat(true);
@@ -190,6 +192,28 @@ function App() {
               </div>
             </div>
 
+            {/* Roast Mode Toggle */}
+            <div className="flex justify-center">
+              <button
+                onClick={() => setRoastMode(!roastMode)}
+                className={`
+                  flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border-2
+                  ${roastMode
+                    ? 'bg-orange-500 border-orange-500 text-white'
+                    : 'bg-white border-gray-300 text-gray-600 hover:border-orange-300 hover:text-orange-600'
+                  }
+                `}
+              >
+                <Flame className={`w-4 h-4 ${roastMode ? 'animate-pulse' : ''}`} />
+                {roastMode ? 'Roast Mode ON' : 'Enable Roast Mode'}
+              </button>
+            </div>
+            {roastMode && (
+              <p className="text-center text-sm text-orange-600 -mt-4">
+                Warning: The AI will be brutally honest about the candidate's profile
+              </p>
+            )}
+
             <div className="flex justify-center">
               <button
                 onClick={handleAnalyze}
@@ -197,13 +221,15 @@ function App() {
                 className={`
                   flex items-center gap-3 px-8 py-4 rounded-xl text-lg font-semibold transition-all
                   ${canAnalyze
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl'
+                    ? roastMode
+                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 shadow-lg hover:shadow-xl'
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl'
                     : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                   }
                 `}
               >
-                <Sparkles className="w-5 h-5" />
-                Analyze & Generate Feedback
+                {roastMode ? <Flame className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
+                {roastMode ? 'Roast This Candidate' : 'Analyze & Generate Feedback'}
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
@@ -248,11 +274,17 @@ function App() {
               </div>
             </div>
 
-            <EmailPreview
-              email={result.email}
-              candidateName={result.candidate.name}
-              language={result.detectedLanguage}
-            />
+            <div className="grid lg:grid-cols-2 gap-6">
+              <EmailPreview
+                email={result.email}
+                candidateName={result.candidate.name}
+                language={result.detectedLanguage}
+              />
+              <VideoPlayer
+                emailContent={result.email}
+                language={result.detectedLanguage}
+              />
+            </div>
 
             <div className="grid lg:grid-cols-2 gap-6">
               <ScoreDisplay

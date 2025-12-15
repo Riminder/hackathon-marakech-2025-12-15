@@ -86,8 +86,14 @@ export function useVapi({ context, onTranscript }: UseVapiOptions) {
         ).join('. ')
       : 'Analysis pending.';
 
+    // Format rich recommendations for voice
     const recommendationsText = recommendations.length > 0
-      ? recommendations.join('. ')
+      ? recommendations.map(rec => {
+          const courseText = rec.courses.length > 0
+            ? ` Recommended course: ${rec.courses[0].name} on ${rec.courses[0].platform}.`
+            : '';
+          return `${rec.title}: ${rec.description}${courseText}`;
+        }).join(' ')
       : 'No specific recommendations yet.';
 
     return {
