@@ -1,6 +1,6 @@
 import { Poppins, Roboto_Mono } from "next/font/google";
 import { Metadata } from "next";
-import "./global.css"
+import "./globals.css"
 
 const geistSans = Poppins({
   variable: "--font-geist-sans",

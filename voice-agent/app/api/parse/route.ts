@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
     const text = formData.get('text') as string | null;
     const sourceKey = process.env.NEXT_PUBLIC_HRFLOW_SOURCE_KEY;
     const apiKey = process.env.NEXT_PUBLIC_HRFLOW_API_KEY;
+    const email = process.env.NEXT_PUBLIC_HRFLOW_API_KEY;
 
     if (!sourceKey || !apiKey) {
       return NextResponse.json(
@@ -34,13 +35,15 @@ export async function POST(request: NextRequest) {
         {
           headers: {
             'X-API-KEY': apiKey,
+            'X-USER-EMAIL': email,
+            'Content-Type': 'application/json'
           },
         }
       );
     } else if (text) {
       // Parse text
       response = await axios.post(
-        `${getApiBaseUrl()}/profile/parsing/text`,
+        `${getApiBaseUrl()}/text/parsing`,
         {
           source_key: sourceKey,
           text: text,
@@ -48,6 +51,7 @@ export async function POST(request: NextRequest) {
         {
           headers: {
             'X-API-KEY': apiKey,
+            'X-USER-EMAIL': email,
             'Content-Type': 'application/json',
           },
         }

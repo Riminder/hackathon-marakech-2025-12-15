@@ -9,14 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@tailwindcss": "^4.1.18",
+    "@tailwindcss/postcss": "^4.1.18",
     "axios": "^1.6.2",
-    "next": "^14",
+    "formidable": "^3.5.4",
+    "next": "^14.2.35",
     "openai": "^4.20.1",
-    "react": "^18",
-    "react-dom": "^18"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@types/formidable": "^3.4.6",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
     const boardKey = process.env.NEXT_PUBLIC_HRFLOW_BOARD_KEY;
     const sourceKey = process.env.NEXT_PUBLIC_HRFLOW_SOURCE_KEY;
     const apiKey = process.env.NEXT_PUBLIC_HRFLOW_API_KEY;
+    const email = process.env.NEXT_PUBLIC_HRFLOW_EMAIL;
 
     if (!boardKey || !sourceKey || !apiKey) {
       return NextResponse.json(
@@ -30,6 +31,7 @@ export async function POST(request: NextRequest) {
       {
         headers: {
           'X-API-KEY': apiKey,
+          'X-USER-EMAIL': email,
           'Content-Type': 'application/json',
         },
       }
