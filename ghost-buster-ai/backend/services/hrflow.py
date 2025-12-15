@@ -132,8 +132,13 @@ async def analyze_candidate(profile_key: str, job_key: str) -> dict:
     # Analyze skills
     skill_analysis = _analyze_skills(profile_data, job_data)
 
-    # Recommendations
-    recommendations = _generate_recommendations(skill_analysis["gaps"])
+    # Recommendations (AI-powered with course suggestions)
+    job_title = job_data.get("name", "Position")
+    recommendations = await _generate_recommendations(
+        skill_analysis["gaps"],
+        skill_analysis["strengths"],
+        job_title
+    )
 
     # Extract name - handle None values
     info = profile_data.get("info", {})
@@ -226,22 +231,71 @@ def _analyze_skills(profile_data: dict, job_data: dict) -> dict:
     return {"gaps": gaps[:5], "strengths": strengths[:5]}
 
 
-def _generate_recommendations(gaps: list[dict]) -> list[str]:
-    """Generate recommendations based on skill gaps."""
-    recommendations = []
+async def _generate_recommendations(gaps: list[dict], strengths: list[dict], job_title: str) -> list[dict]:
+    """Generate AI-powered recommendations with course suggestions."""
+    import anthropic
 
-    for gap in gaps[:3]:
-        skill = gap["name"]
-        gap_size = gap["requiredLevel"] - gap["candidateLevel"]
+    if not gaps:
+        return [{
+            "type": "general",
+            "skill": None,
+            "title": "Continue Building Your Portfolio",
+            "description": "Keep developing projects relevant to this role to strengthen your application.",
+            "courses": []
+        }]
 
-        if gap_size > 50:
-            recommendations.append(f"Build foundational knowledge in {skill} through courses or certifications.")
-        elif gap_size > 25:
-            recommendations.append(f"Strengthen {skill} through hands-on projects.")
-        else:
-            recommendations.append(f"Polish your {skill} expertise with real-world practice.")
+    # Prepare skill data for Claude
+    gaps_text = ", ".join([g["name"] for g in gaps[:5]])
+    strengths_text = ", ".join([s["name"] for s in strengths[:3]]) if strengths else "None identified"
 
-    if not recommendations:
-        recommendations.append("Continue building your portfolio with projects relevant to this role.")
+    prompt = f"""Based on these skill gaps for a {job_title} position, provide 3-4 specific learning recommendations.
 
-    return recommendations
+SKILL GAPS: {gaps_text}
+EXISTING STRENGTHS: {strengths_text}
+
+For each recommendation, provide:
+1. Whether it's a "hardskill" or "softskill"
+2. The specific skill to develop
+3. A brief actionable title (max 10 words)
+4. A description (1-2 sentences)
+5. 1-2 specific online courses with platform and URL
+
+Respond in this exact JSON format:
+[
+  {{
+    "type": "hardskill" or "softskill",
+    "skill": "skill name",
+    "title": "Short actionable title",
+    "description": "Brief description of what to learn and why",
+    "courses": [
+      {{"name": "Course Name", "platform": "Coursera/Udemy/LinkedIn Learning/etc", "url": "https://..."}}
+    ]
+  }}
+]
+
+Focus on reputable platforms: Coursera, Udemy, LinkedIn Learning, Pluralsight, edX, freeCodeCamp.
+Only return the JSON array, no other text."""
+
+    try:
+        client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1000,
+            messages=[{"role": "user", "content": prompt}]
+        )
+
+        import json
+        result = json.loads(response.content[0].text)
+        return result
+    except Exception as e:
+        print(f"Failed to generate AI recommendations: {e}")
+        # Fallback to simple recommendations
+        return [
+            {
+                "type": "hardskill",
+                "skill": gaps[0]["name"] if gaps else "technical skills",
+                "title": f"Build foundational knowledge in {gaps[0]['name'] if gaps else 'key areas'}",
+                "description": "Focus on developing core competencies required for this role.",
+                "courses": []
+            }
+        ]

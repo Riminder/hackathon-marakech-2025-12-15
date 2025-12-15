@@ -162,7 +162,7 @@ export type Job = {
   title: string;
   requirements: string;
   responsibilities: string;
-  skills: string;
+  skills: string[];
   created_at: string;
   id: number;
   category: string;
@@ -186,12 +186,18 @@ export const fakeJobs = {
         'Sales'
       ];
 
+      const skillsList = [
+        'JavaScript', 'TypeScript', 'React', 'Node.js', 'Python',
+        'Java', 'SQL', 'MongoDB', 'AWS', 'Docker', 'Kubernetes',
+        'Git', 'Agile', 'Communication', 'Problem Solving', 'Leadership'
+      ];
+
       return {
         id,
         title: faker.person.jobTitle(),
         requirements: faker.lorem.paragraph(),
         responsibilities: faker.lorem.paragraph(),
-        skills: faker.lorem.words(10),
+        skills: faker.helpers.arrayElements(skillsList, { min: 3, max: 8 }),
         created_at: faker.date
           .between({ from: '2022-01-01', to: '2023-12-31' })
           .toISOString(),
@@ -314,6 +320,29 @@ export type Profile = {
   id: number;
   category: string;
   updated_at: string;
+  phone?: string;
+  location?: string;
+  linkedin?: string;
+  github?: string;
+  website?: string;
+  experiences?: Array<{
+    title: string;
+    company: string;
+    date_start: string;
+    date_end: string | null;
+    description: string;
+  }>;
+  educations?: Array<{
+    title: string;
+    school: string;
+    date_start: string;
+    date_end: string | null;
+    description: string;
+  }>;
+  skills?: Array<{
+    name: string;
+    type: 'hard' | 'soft';
+  }>;
 };
 
 // Mock profile data store
@@ -333,6 +362,62 @@ export const fakeProfiles = {
         'Engineer'
       ];
 
+      const hardSkills = [
+        'JavaScript', 'TypeScript', 'React', 'Node.js', 'Python',
+        'Java', 'SQL', 'MongoDB', 'AWS', 'Docker', 'Kubernetes',
+        'Git', 'GraphQL', 'Next.js', 'Vue.js', 'Angular'
+      ];
+
+      const softSkills = [
+        'Communication', 'Leadership', 'Problem Solving', 'Teamwork',
+        'Time Management', 'Creativity', 'Adaptability', 'Critical Thinking'
+      ];
+
+      // Generate random experiences
+      const numExperiences = faker.number.int({ min: 2, max: 4 });
+      const experiences = Array.from({ length: numExperiences }, (_, i) => {
+        const startDate = faker.date.between({ from: '2015-01-01', to: '2022-12-31' });
+        const endDate = i === 0 ? null : faker.date.between({ from: startDate, to: '2024-12-31' });
+
+        return {
+          title: faker.person.jobTitle(),
+          company: faker.company.name(),
+          date_start: startDate.toISOString(),
+          date_end: endDate?.toISOString() || null,
+          description: faker.lorem.paragraph()
+        };
+      });
+
+      // Generate random educations
+      const numEducations = faker.number.int({ min: 1, max: 3 });
+      const educations = Array.from({ length: numEducations }, () => {
+        const startDate = faker.date.between({ from: '2010-01-01', to: '2018-12-31' });
+        const endDate = faker.date.between({ from: startDate, to: '2022-12-31' });
+
+        return {
+          title: faker.helpers.arrayElement([
+            'Bachelor of Science in Computer Science',
+            'Master of Business Administration',
+            'Bachelor of Arts in Design',
+            'Master of Science in Data Science',
+            'Bachelor of Engineering'
+          ]),
+          school: faker.company.name() + ' University',
+          date_start: startDate.toISOString(),
+          date_end: endDate.toISOString(),
+          description: faker.lorem.sentence()
+        };
+      });
+
+      // Generate random skills
+      const selectedHardSkills = faker.helpers.arrayElements(hardSkills, { min: 4, max: 8 });
+      const selectedSoftSkills = faker.helpers.arrayElements(softSkills, { min: 2, max: 4 });
+
+      const skills = [
+        ...selectedHardSkills.map(name => ({ name, type: 'hard' as const })),
+        ...selectedSoftSkills.map(name => ({ name, type: 'soft' as const }))
+      ];
+
       return {
         id,
         name: faker.person.fullName(),
@@ -341,9 +426,17 @@ export const fakeProfiles = {
           .between({ from: '2022-01-01', to: '2023-12-31' })
           .toISOString(),
         email: faker.internet.email(),
+        phone: faker.phone.number(),
+        location: faker.location.city() + ', ' + faker.location.country(),
+        linkedin: `https://linkedin.com/in/${faker.internet.userName()}`,
+        github: `https://github.com/${faker.internet.userName()}`,
+        website: faker.internet.url(),
         photo_url: `https://api.slingacademy.com/public/sample-users/${id}.png`,
         category: faker.helpers.arrayElement(categories),
-        updated_at: faker.date.recent().toISOString()
+        updated_at: faker.date.recent().toISOString(),
+        experiences,
+        educations,
+        skills
       };
     }
 

@@ -7,31 +7,48 @@ import { useDataTable } from '@/hooks/use-data-table';
 
 import { ColumnDef } from '@tanstack/react-table';
 import { parseAsInteger, useQueryState } from 'nuqs';
-interface ProfileTableParams<TData, TValue> {
-  data: TData[];
+import { useState } from 'react';
+import { Profile } from '@/constants/data';
+import ProfileDetailsDialog from '../profile-details-dialog';
+import { createColumns } from './columns';
+
+interface ProfileTableParams {
+  data: Profile[];
   totalItems: number;
-  columns: ColumnDef<TData, TValue>[];
 }
-export function ProfileTable<TData, TValue>({
-  data,
-  totalItems,
-  columns
-}: ProfileTableParams<TData, TValue>) {
+
+export function ProfileTable({ data, totalItems }: ProfileTableParams) {
   const [pageSize] = useQueryState('perPage', parseAsInteger.withDefault(10));
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const pageCount = Math.ceil(totalItems / pageSize);
 
+  const handleProfileClick = (profile: Profile) => {
+    setSelectedProfile(profile);
+    setIsDialogOpen(true);
+  };
+
+  const columns = createColumns(handleProfileClick);
+
   const { table } = useDataTable({
-    data, // profile data
-    columns, // profile columns
+    data,
+    columns,
     pageCount: pageCount,
-    shallow: false, //Setting to false triggers a network request with the updated querystring.
+    shallow: false,
     debounceMs: 500
   });
 
   return (
-    <DataTable table={table}>
-      <DataTableToolbar table={table} />
-    </DataTable>
+    <>
+      <DataTable table={table}>
+        <DataTableToolbar table={table} />
+      </DataTable>
+      <ProfileDetailsDialog
+        profile={selectedProfile}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+      />
+    </>
   );
 }

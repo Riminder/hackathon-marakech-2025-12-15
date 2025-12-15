@@ -57,11 +57,11 @@ export const columns: ColumnDef<Job>[] = [
     }
   },
   {
-    accessorKey: 'description',
-    header: 'DESCRIPTION',
+    accessorKey: 'requirements',
+    header: 'REQUIREMENTS',
     cell: ({ row }) => {
-      const description = row.getValue('description') as string;
-      const words = description.split(' ').slice(0, 5).join(' ');
+      const requirements = row.getValue('requirements') as string;
+      const words = requirements.split(' ').slice(0, 5).join(' ');
       return <div className='max-w-xs text-sm text-muted-foreground'>{words}...</div>;
     }
   },

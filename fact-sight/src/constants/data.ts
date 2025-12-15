@@ -12,9 +12,10 @@ export type Product = {
 export type Job = {
   photo_url: string;
   title: string;
-  description: string;
+  requirements: string;
+  responsibilities: string;
+  skills: string[];
   created_at: string;
-  salary: number;
   id: number;
   category: string;
   updated_at: string;
@@ -29,6 +30,28 @@ export type Profile = {
   id: number;
   category: string;
   updated_at: string;
+  phone?: string;
+  location?: string;
+  linkedin?: string;
+  website?: string;
+  experiences?: Array<{
+    title: string;
+    company: string;
+    date_start: string;
+    date_end: string | null;
+    description: string;
+  }>;
+  educations?: Array<{
+    title: string;
+    school: string;
+    date_start: string;
+    date_end: string | null;
+    description: string;
+  }>;
+  skills?: Array<{
+    name: string;
+    type: 'hard' | 'soft';
+  }>;
 };
 
 export interface SaleUser {

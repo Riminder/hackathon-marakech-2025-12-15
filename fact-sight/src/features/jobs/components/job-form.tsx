@@ -37,9 +37,14 @@ const formSchema = z.object({
     message: 'Job title must be at least 2 characters.'
   }),
   category: z.string(),
-  salary: z.number(),
-  description: z.string().min(10, {
-    message: 'Description must be at least 10 characters.'
+  requirements: z.string().min(10, {
+    message: 'Requirements must be at least 10 characters.'
+  }),
+  responsibilities: z.string().min(10, {
+    message: 'Responsibilities must be at least 10 characters.'
+  }),
+  skills: z.string().min(1, {
+    message: 'Please add at least one skill (comma-separated).'
   })
 });
 
@@ -53,8 +58,9 @@ export default function JobForm({
   const defaultValues = {
     title: initialData?.title || '',
     category: initialData?.category || '',
-    salary: initialData?.salary || undefined,
-    description: initialData?.description || ''
+    requirements: initialData?.requirements || '',
+    responsibilities: initialData?.responsibilities || '',
+    skills: initialData?.skills?.join(', ') || ''
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -128,29 +134,44 @@ export default function JobForm({
                 }
               ]}
             />
-
-            <FormInput
-              control={form.control}
-              name='salary'
-              label='Salary'
-              placeholder='Enter salary'
-              required
-              type='number'
-              min={0}
-              step='0.01'
-            />
           </div>
 
           <FormTextarea
             control={form.control}
-            name='description'
-            label='Description'
-            placeholder='Enter job description'
+            name='requirements'
+            label='Requirements'
+            placeholder='Enter job requirements'
             required
             config={{
               maxLength: 500,
               showCharCount: true,
               rows: 4
+            }}
+          />
+
+          <FormTextarea
+            control={form.control}
+            name='responsibilities'
+            label='Responsibilities'
+            placeholder='Enter job responsibilities'
+            required
+            config={{
+              maxLength: 500,
+              showCharCount: true,
+              rows: 4
+            }}
+          />
+
+          <FormTextarea
+            control={form.control}
+            name='skills'
+            label='Skills'
+            placeholder='Enter skills (comma-separated, e.g., JavaScript, React, Node.js)'
+            required
+            config={{
+              maxLength: 200,
+              showCharCount: true,
+              rows: 2
             }}
           />
 

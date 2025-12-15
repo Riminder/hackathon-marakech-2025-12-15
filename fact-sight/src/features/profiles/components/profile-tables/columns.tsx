@@ -8,7 +8,9 @@ import Image from 'next/image';
 import { CellAction } from './cell-action';
 import { CATEGORY_OPTIONS } from './options';
 
-export const columns: ColumnDef<Profile>[] = [
+export const createColumns = (
+  onProfileClick: (profile: Profile) => void
+): ColumnDef<Profile>[] => [
   {
     accessorKey: 'photo_url',
     header: 'IMAGE',
@@ -31,7 +33,14 @@ export const columns: ColumnDef<Profile>[] = [
     header: ({ column }: { column: Column<Profile, unknown> }) => (
       <DataTableColumnHeader column={column} title='Name' />
     ),
-    cell: ({ cell }) => <div>{cell.getValue<Profile['name']>()}</div>,
+    cell: ({ cell, row }) => (
+      <div
+        className='cursor-pointer hover:underline font-medium text-blue-600 hover:text-blue-800'
+        onClick={() => onProfileClick(row.original)}
+      >
+        {cell.getValue<Profile['name']>()}
+      </div>
+    ),
     meta: {
       label: 'Name',
       placeholder: 'Search profiles...',
