@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { 
   Users, 
   Trash2, 
@@ -86,80 +86,106 @@ const MOCK_CANDIDATES: Candidate[] = [
 
 // --- Constants for API (HACKATHON MODE: Client Side) ---
 const API_URL = "/api/reject"; 
-const API_KEY = "ask_09d9cda949adbb6f475da0ab5f832491";    
-//const API_KEY = "xxx";    
-const USER_EMAIL = "integrations+carecall@hrflow.ai";     
-
 
 export default function RecruiterBackOffice() {
   // --- State ---
   const [threshold, setThreshold] = useState<number>(50);
   const [candidates, setCandidates] = useState<Candidate[]>(MOCK_CANDIDATES);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false); // NEW: Loading state
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
 
+   // --- NEW: Fetch Dynamic Candidates ---
+   useEffect(() => {
+    const fetchCandidates = async () => {
+      console.log("🚀 FRONTEND: Démarrage du fetch..."); 
+      try {
+        const res = await fetch("/api/candidates");
+        
+        if (res.ok) {
+          const newCandidates = await res.json();
+          console.log("📦 FRONTEND: Données reçues :", newCandidates);
 
-// --- Logic ---
-const candidatesToReject = useMemo(() => {
-  return candidates.filter((c) => c.score < threshold);
-}, [candidates, threshold]);
-
-const handleReject = async () => {
-  // 1. Validation basique
-  if (candidatesToReject.length === 0) return;
-
-  const confirmed = confirm(
-    `Êtes-vous sûr de vouloir rejeter ${candidatesToReject.length} candidats ?\nCela déclenchera l'agent IA individuellement pour chacun.`
-  );
-
-  if (!confirmed) return;
-
-  setIsSubmitting(true);
-
-  try {
-    // 2. Création des Promesses (Une requête fetch par candidat)
-    const requests = candidatesToReject.map((candidate) => {
-      
-      // IMPORTANT : On garde le format array [{...}] car ton code Python 
-      // s'attend à itérer sur une liste, même si elle ne contient qu'un seul élément.
-      const singlePayload = {
-        profile_key: candidate.id,
-        strengths: candidate.strengths,
-        weaknesses: candidate.weaknesses
-      };
-
-
-      // On retourne la promesse du fetch
-      return fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Pas besoin de clés ici car c'est géré par route.ts maintenant
-        },
-        body: JSON.stringify(singlePayload),
-      }).then(async (response) => {
-          if (!response.ok) {
-              throw new Error(`Erreur API pour ${candidate.name} (${response.status})`);
+          if (newCandidates.length > 0) {
+              setCandidates((prev) => {
+                const prevIds = new Set(prev.map(c => c.id));
+                const uniqueNew = newCandidates.filter((c: any) => !prevIds.has(c.id));
+                console.log("➕ FRONTEND: Ajout de", uniqueNew.length, "nouveaux candidats");
+                return [...prev, ...uniqueNew];
+              });
+          } else {
+              console.warn("⚠️ FRONTEND: Tableau reçu vide !");
           }
-          return response;
+        } else {
+            console.error("❌ FRONTEND: Erreur API", res.status);
+        }
+      } catch (error) {
+        console.error("💥 FRONTEND: Crash fetch:", error);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
 
+    fetchCandidates();
+  }, []);
+
+  // --- Logic ---
+  
+  // 1. ✅ NOUVEAU : Tri automatique par score décroissant (Best first)
+  const sortedCandidates = useMemo(() => {
+    return [...candidates].sort((a, b) => b.score - a.score);
+  }, [candidates]);
+
+  // 2. Logic de filtre (reste identique mais s'applique sur les données brutes)
+  const candidatesToReject = useMemo(() => {
+    return candidates.filter((c) => c.score < threshold);
+  }, [candidates, threshold]);
+
+  const handleReject = async () => {
+    if (candidatesToReject.length === 0) return;
+
+    const confirmed = confirm(
+      `Êtes-vous sûr de vouloir rejeter ${candidatesToReject.length} candidats ?\nCela déclenchera l'agent IA individuellement pour chacun.`
+    );
+
+    if (!confirmed) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const requests = candidatesToReject.map((candidate) => {
+        const singlePayload = {
+          profile_key: candidate.id,
+          strengths: candidate.strengths,
+          weaknesses: candidate.weaknesses
+        };
+
+        return fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(singlePayload),
+        }).then(async (response) => {
+            if (!response.ok) {
+                throw new Error(`Erreur API pour ${candidate.name} (${response.status})`);
+            }
+            return response;
+        });
       });
-    });
 
-    // 3. Exécution parallèle : on attend que TOUTES les requêtes soient finies
-    await Promise.all(requests);
+      await Promise.all(requests);
 
-    // 4. Mise à jour de l'interface (Succès total)
-    const keptCandidates = candidates.filter((c) => c.score >= threshold);
-    setCandidates(keptCandidates);
-    alert(`Succès ! ${candidatesToReject.length} candidats ont été traités individuellement.`);
+      const keptCandidates = candidates.filter((c) => c.score >= threshold);
+      setCandidates(keptCandidates);
+      alert(`Succès ! ${candidatesToReject.length} candidats ont été traités individuellement.`);
 
-  } catch (error) {
-    console.error("Erreur lors de l'envoi individuel :", error);
-    alert("Une erreur est survenue lors du traitement d'un ou plusieurs candidats. Vérifiez la console.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    } catch (error) {
+      console.error("Erreur lors de l'envoi individuel :", error);
+      alert("Une erreur est survenue lors du traitement d'un ou plusieurs candidats.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // --- Styles Constants ---
   const BRAND_TEAL = "#379E8F";
@@ -172,7 +198,7 @@ const handleReject = async () => {
       <nav className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: BRAND_TEAL }}>
-            FC
+            AC
           </div>
           <span className="font-semibold text-lg tracking-tight">AirCall AI</span>
           <span className="bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded-md">Recruiter View</span>
@@ -245,6 +271,14 @@ const handleReject = async () => {
 
         {/* Table Area */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+           
+           {/* Barre de chargement discrète */}
+           {isLoadingData && (
+             <div className="w-full h-1 bg-gray-100 overflow-hidden">
+               <div className="h-full bg-[#379E8F] animate-progress origin-left"></div>
+             </div>
+           )}
+
           <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -272,7 +306,8 @@ const handleReject = async () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {candidates.map((candidate) => {
+                {/* ✅ ICI : On utilise sortedCandidates au lieu de candidates */}
+                {sortedCandidates.map((candidate) => {
                   const isBelowThreshold = candidate.score < threshold;
                   
                   return (
